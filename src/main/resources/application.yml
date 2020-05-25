@@ -13,6 +13,7 @@ spring:
   redis:
     url: ${REDIS_URL:redis://localhost:6379}
     database: ${REDIS_DATABASE:0}
+    #password: ${PASSWORD:123123}
 
   datasource:
     url: ${DATASOURCE_URL:jdbc:h2:mem:demo}
