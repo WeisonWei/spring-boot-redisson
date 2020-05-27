@@ -16,13 +16,13 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class RedissonConfig {
 
-    @Value("${spring.redis.url}")
+    @Value("${spring.redis.url:}")
     private String address;
 
     @Value("${spring.redis.password:}")
     private String password;
 
-    @Value("${spring.redis.database}")
+    @Value("${spring.redis.database:0}")
     private String database;
 
     @Bean
@@ -30,10 +30,17 @@ public class RedissonConfig {
         Config config = new Config();
         //config.useSingleServer().setAddress("redis://127.0.0.1:6379").setPassword("123456");
         SingleServerConfig singleServerConfig = config.useSingleServer();
-        singleServerConfig.setAddress(address);
-        singleServerConfig.setDatabase(Integer.valueOf(database));
+        if (StringUtils.isNotBlank(address)) {
+            singleServerConfig.setAddress(address);
+        }
+
         if (StringUtils.isNotBlank(password)) {
             singleServerConfig.setPassword(password);
+        }
+
+        if (StringUtils.isNotBlank(database)) {
+            singleServerConfig.setDatabase(Integer.valueOf(database));
+
         }
         RedissonClient redissonClient = Redisson.create(config);
         return redissonClient;
