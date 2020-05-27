@@ -38,7 +38,7 @@ public class TaskController {
     public String noLock() {
         NUMBER++;
         setThreadName("noLock" + NUMBER);
-        log.info("==thread=={}==number=={}",getThread().getName(),NUMBER);
+        log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
         return "OK";
     }
 
@@ -47,7 +47,7 @@ public class TaskController {
         long begin = getTime();
         NUMBER++;
         setThreadName("synchronizedLock" + NUMBER);
-        log.info("==thread=={}==number=={}",getThread().getName(),NUMBER);
+        log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
         long end = getTime();
         log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
         return "OK";
@@ -60,7 +60,7 @@ public class TaskController {
         try {
             NUMBER++;
             setThreadName("reentrantLock" + NUMBER);
-            log.info("==thread=={}==number=={}",getThread().getName(),NUMBER);
+            log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
         } finally {
             FAIR_LOCK.unlock();
         }
@@ -69,33 +69,43 @@ public class TaskController {
         return "OK";
     }
 
+    /**
+     * tryLock非阻塞
+     *
+     * @return
+     * @throws InterruptedException
+     */
     @GetMapping("/locks/uf")
     public String rLockUnFairLock() throws InterruptedException {
         long begin = getTime();
-        NON_FAIR_LOCK.tryLock(2, TimeUnit.SECONDS);
-        try {
-            NUMBER++;
-            log.info("==thread=={}==number=={}",getThread().getName(),NUMBER);
-            TimeUnit.SECONDS.sleep(3);
-        } finally {
-            NON_FAIR_LOCK.unlock();
+        boolean b = NON_FAIR_LOCK.tryLock(2, TimeUnit.SECONDS);
+        if (b) {
+            try {
+                NUMBER++;
+                log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
+                TimeUnit.SECONDS.sleep(3);
+            } finally {
+
+                NON_FAIR_LOCK.unlock();
+            }
+            long end = getTime();
+            log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
+            return "OK";
         }
-        long end = getTime();
-        log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
-        return "OK";
+        return "NO";
     }
 
     @GetMapping("/locks/rl1")
     public String redisRLock1() throws InterruptedException {
         long begin = getTime();
         int number = 0;
-        RLock lock = redissonClient.getFairLock("redisRLock1");
-        boolean res = lock.tryLock(11, 11, TimeUnit.SECONDS);
+        RLock lock = redissonClient.getFairLock("rl1");
+        boolean res = lock.tryLock(10, 10, TimeUnit.SECONDS);
         if (res) {
             try {
                 NUMBER++;
                 setThreadName("redisRLock1" + number);
-                log.info("==thread=={}==number=={}",getThread().getName(),NUMBER);
+                log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
                 TimeUnit.SECONDS.sleep(1);
             } finally {
                 if (lock.isHeldByCurrentThread()) {
@@ -112,15 +122,15 @@ public class TaskController {
         return System.currentTimeMillis();
     }
 
-    @GetMapping("/locks/tryLock")
+    @GetMapping("/locks/lock")
     public String redisRLock11() throws InterruptedException {
         long begin = getTime();
-        RLock lock = redissonClient.getLock("myLock");
+        RLock lock = redissonClient.getLock("lock");
         lock.lock(10, TimeUnit.SECONDS);
         try {
             NUMBER++;
             setThreadName("redisRLock11" + NUMBER);
-            log.info("==thread=={}==number=={}",getThread().getName(),NUMBER);
+            log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
             TimeUnit.SECONDS.sleep(1);
         } finally {
             if (lock.isHeldByCurrentThread()) {
@@ -132,17 +142,29 @@ public class TaskController {
         return "OK";
     }
 
-    @GetMapping("/locks/tryLock/")
+    /**
+     * 线程 或 lambda 如果有共享资源竞争 则锁无效
+     *
+     * @return
+     * @throws InterruptedException
+     */
+    @GetMapping("/locks/tryLock")
     public String redisRLock2() throws InterruptedException {
         long begin = getTime();
-        RLock lock = redissonClient.getLock("myLock");
+        RLock lock = redissonClient.getLock("tryLock");
         boolean res = lock.tryLock(10, 10, TimeUnit.SECONDS);
         if (res) {
             try {
                 NUMBER++;
                 setThreadName("myLock" + NUMBER);
-                log.info("==thread=={}==number=={}",getThread().getName(),NUMBER);
-                TimeUnit.SECONDS.sleep(3);
+                new Thread(() -> {
+                    try {
+                        log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
+                        TimeUnit.SECONDS.sleep(3);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
                 return String.valueOf(NUMBER);
             } finally {
                 if (lock.isHeldByCurrentThread()) {
@@ -153,6 +175,22 @@ public class TaskController {
         long end = getTime();
         log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
         return "OK";
+    }
+
+    /**
+     * lambda无效 因为只是触发
+     * @return
+     * @throws InterruptedException
+     */
+    @GetMapping("/locks/lockAndExec")
+    public String redisRLock3() throws InterruptedException {
+        String s = distributedLock.lockAndExec(1l, "12345", () -> {
+            NUMBER++;
+            log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
+            return "OK";
+        });
+
+        return s;
     }
 
 

@@ -9,7 +9,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 
 
-@Table(name = "t_task", indexes = @Index(name = "idx_tag", columnList = "tag"))
+@Table(name = "t_lock", indexes = @Index(name = "idx_tag", columnList = "tag"))
 @Data
 @ToString
 @Builder
