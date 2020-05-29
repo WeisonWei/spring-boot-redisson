@@ -83,7 +83,7 @@ public class TaskServiceTest {
             });
         }
         countDownLatch.await();
-        log.info("--noLock--over--");
+        log.info("--fairReEntrantLock--over--");
     }
 
     @Test
@@ -95,7 +95,7 @@ public class TaskServiceTest {
         log.info("--reEntrantLock--start--");
         int cpuNumber = Runtime.getRuntime().availableProcessors();
         System.out.println("--系统一个有--" + cpuNumber + "个cpu--");
-        ExecutorService executorService = Executors.newFixedThreadPool(THREAD_NUMBER);
+        ExecutorService executorService = Executors.newCachedThreadPool();
 
         for (int i = 0; i < THREAD_NUMBER; i++) {
             int finalI = i;
@@ -112,6 +112,151 @@ public class TaskServiceTest {
             });
         }
         countDownLatch.await();
-        log.info("--noLock--over--");
+        log.info("--reEntrantLock--over--");
+    }
+
+    @Test
+    @DisplayName("synchronized调用")
+    @Order(4)
+    public void synchronizedLock() throws InterruptedException {
+        CyclicBarrier barrier = new CyclicBarrier(THREAD_NUMBER);
+        CountDownLatch countDownLatch = new CountDownLatch(THREAD_NUMBER);
+        log.info("--synchronizedLock--start--");
+        int cpuNumber = Runtime.getRuntime().availableProcessors();
+        System.out.println("--系统一个有--" + cpuNumber + "个cpu--");
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
+        for (int i = 0; i < THREAD_NUMBER; i++) {
+            int finalI = i;
+            executorService.execute(() -> {
+                try {
+                    log.info(finalI + " = 到达栅栏 =");
+                    barrier.await();
+                    log.info(finalI + " - 冲破栅栏 -");
+                    taskService.synchronizedLock();
+                    countDownLatch.countDown();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        countDownLatch.await();
+        log.info("--synchronizedLock--over--");
+    }
+
+    @Test
+    @DisplayName("RLock调用")
+    @Order(4)
+    public void rLock() throws InterruptedException {
+        CyclicBarrier barrier = new CyclicBarrier(THREAD_NUMBER);
+        CountDownLatch countDownLatch = new CountDownLatch(THREAD_NUMBER);
+        log.info("--rLock--start--");
+        int cpuNumber = Runtime.getRuntime().availableProcessors();
+        System.out.println("--系统一个有--" + cpuNumber + "个cpu--");
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
+        for (int i = 0; i < THREAD_NUMBER; i++) {
+            int finalI = i;
+            executorService.execute(() -> {
+                try {
+                    log.info(finalI + " = 到达栅栏 =");
+                    barrier.await();
+                    log.info(finalI + " - 冲破栅栏 -");
+                    taskService.rLock();
+                    countDownLatch.countDown();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        countDownLatch.await();
+        log.info("--rLock--over--");
+    }
+
+    @Test
+    @DisplayName("rLockExec调用")
+    @Order(5)
+    public void rLockExec() throws InterruptedException {
+        CyclicBarrier barrier = new CyclicBarrier(30);
+        CountDownLatch countDownLatch = new CountDownLatch(30);
+        log.info("--rLockExec--start--");
+        int cpuNumber = Runtime.getRuntime().availableProcessors();
+        System.out.println("--系统一个有--" + cpuNumber + "个cpu--");
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
+        for (int i = 0; i < 30; i++) {
+            int finalI = i;
+            executorService.execute(() -> {
+                try {
+                    log.info(finalI + " = 到达栅栏 =");
+                    barrier.await();
+                    log.info(finalI + " - 冲破栅栏 -");
+                    taskService.rLockExec();
+                    countDownLatch.countDown();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        countDownLatch.await();
+        log.info("--rLockExec--over--");
+    }
+
+    @Test
+    @DisplayName("trLock调用")
+    @Order(6)
+    public void trLock() throws InterruptedException {
+        CyclicBarrier barrier = new CyclicBarrier(30);
+        CountDownLatch countDownLatch = new CountDownLatch(30);
+        log.info("--trLock--start--");
+        int cpuNumber = Runtime.getRuntime().availableProcessors();
+        System.out.println("--系统一个有--" + cpuNumber + "个cpu--");
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
+        for (int i = 0; i < 30; i++) {
+            int finalI = i;
+            executorService.execute(() -> {
+                try {
+                    log.info(finalI + " = 到达栅栏 =");
+                    barrier.await();
+                    log.info(finalI + " - 冲破栅栏 -");
+                    taskService.trLock();
+                    countDownLatch.countDown();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        countDownLatch.await();
+        log.info("--trLock--over--");
+    }
+
+    @Test
+    @DisplayName("trfLock调用")
+    @Order(7)
+    public void trfLock() throws InterruptedException {
+        CyclicBarrier barrier = new CyclicBarrier(30);
+        CountDownLatch countDownLatch = new CountDownLatch(30);
+        log.info("--trfLock--start--");
+        int cpuNumber = Runtime.getRuntime().availableProcessors();
+        System.out.println("--系统一个有--" + cpuNumber + "个cpu--");
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
+        for (int i = 0; i < 30; i++) {
+            int finalI = i;
+            executorService.execute(() -> {
+                try {
+                    log.info(finalI + " = 到达栅栏 =");
+                    barrier.await();
+                    log.info(finalI + " - 冲破栅栏 -");
+                    taskService.trfLock();
+                    countDownLatch.countDown();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        countDownLatch.await();
+        log.info("--trfLock--over--");
     }
 }

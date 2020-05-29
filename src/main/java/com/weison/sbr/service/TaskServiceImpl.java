@@ -169,7 +169,7 @@ public class TaskServiceImpl implements TaskService {
         long begin = getTime();
         int number = 0;
         RLock lock = redissonClient.getFairLock("rl1");
-        boolean res = lock.tryLock(10, 10, TimeUnit.SECONDS);
+        boolean res = lock.tryLock(50, 10, TimeUnit.SECONDS);
         if (res) {
             try {
                 NUMBER++;
