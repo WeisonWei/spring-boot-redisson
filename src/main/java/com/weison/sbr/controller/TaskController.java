@@ -1,10 +1,11 @@
 package com.weison.sbr.controller;
 
-
 import com.weison.sbr.config.DistributedLock;
+import com.weison.sbr.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,16 +19,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class TaskController {
 
-    private static volatile int NUMBER = 0;
-    private static volatile int CORE_DATA_FLAG = 0;
-    private static final Lock FAIR_LOCK = new ReentrantLock(true);
-    private static final Lock NON_FAIR_LOCK = new ReentrantLock();
-
     @Resource
-    RedissonClient redissonClient;
-
-    @Resource
-    DistributedLock distributedLock;
+    private TaskService taskService;
 
     @GetMapping("/hello")
     public String hello() {
@@ -53,8 +46,8 @@ public class TaskController {
         return "OK";
     }
 
-    @GetMapping("/locks/reentrantLock")
-    public String reentrantLock() throws InterruptedException {
+    @GetMapping("/locks/re-entrant-lock-f")
+    public String fairReEntrantLock() throws InterruptedException {
         long begin = getTime();
         FAIR_LOCK.lock();
         try {
@@ -69,14 +62,9 @@ public class TaskController {
         return "OK";
     }
 
-    /**
-     * tryLock非阻塞
-     *
-     * @return
-     * @throws InterruptedException
-     */
-    @GetMapping("/locks/uf")
-    public String rLockUnFairLock() throws InterruptedException {
+
+    @GetMapping("/locks/e-entrant-lock")
+    public String reEntrantLock() throws InterruptedException {
         long begin = getTime();
         boolean b = NON_FAIR_LOCK.tryLock(2, TimeUnit.SECONDS);
         if (b) {
@@ -95,8 +83,30 @@ public class TaskController {
         return "NO";
     }
 
-    @GetMapping("/locks/rl1")
-    public String redisRLock1() throws InterruptedException {
+
+    @GetMapping("/locks/r-lock")
+    public String rLock() throws InterruptedException {
+        long begin = getTime();
+        RLock lock = redissonClient.getLock("lock");
+        lock.lock(10, TimeUnit.SECONDS);
+        try {
+            NUMBER++;
+            setThreadName("redisRLock11" + NUMBER);
+            log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
+            TimeUnit.SECONDS.sleep(1);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+        long end = getTime();
+        log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
+        return "OK";
+    }
+
+
+    @GetMapping("/locks/rtf-lock")
+    public String trfLock() throws InterruptedException {
         long begin = getTime();
         int number = 0;
         RLock lock = redissonClient.getFairLock("rl1");
@@ -118,29 +128,6 @@ public class TaskController {
         return "OK";
     }
 
-    private long getTime() {
-        return System.currentTimeMillis();
-    }
-
-    @GetMapping("/locks/lock")
-    public String redisRLock11() throws InterruptedException {
-        long begin = getTime();
-        RLock lock = redissonClient.getLock("lock");
-        lock.lock(10, TimeUnit.SECONDS);
-        try {
-            NUMBER++;
-            setThreadName("redisRLock11" + NUMBER);
-            log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
-            TimeUnit.SECONDS.sleep(1);
-        } finally {
-            if (lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
-        }
-        long end = getTime();
-        log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
-        return "OK";
-    }
 
     /**
      * 线程 或 lambda 如果有共享资源竞争 则锁无效
@@ -148,8 +135,8 @@ public class TaskController {
      * @return
      * @throws InterruptedException
      */
-    @GetMapping("/locks/tryLock")
-    public String redisRLock2() throws InterruptedException {
+    @GetMapping("/locks/rt-lock")
+    public String trLock() throws InterruptedException {
         long begin = getTime();
         RLock lock = redissonClient.getLock("tryLock");
         boolean res = lock.tryLock(10, 10, TimeUnit.SECONDS);
@@ -179,11 +166,12 @@ public class TaskController {
 
     /**
      * lambda无效 因为只是触发
+     *
      * @return
      * @throws InterruptedException
      */
-    @GetMapping("/locks/lockAndExec")
-    public String redisRLock3() throws InterruptedException {
+    @GetMapping("/locks/r-lock-e")
+    public String rLockExec() throws InterruptedException {
         String s = distributedLock.lockAndExec(1l, "12345", () -> {
             NUMBER++;
             log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
@@ -201,4 +189,10 @@ public class TaskController {
     private Thread getThread() {
         return Thread.currentThread();
     }
+
+    private long getTime() {
+        return System.currentTimeMillis();
+    }
+
+
 }
