@@ -6,7 +6,7 @@ public interface TaskService {
 
     String noLock();
 
-    String rLock();
+    String rLock() throws InterruptedException;
 
     String rLockExec();
 

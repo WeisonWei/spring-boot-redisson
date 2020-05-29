@@ -19,8 +19,8 @@ public class TaskServiceImpl implements TaskService {
 
     private static final Lock FAIR_LOCK = new ReentrantLock(true);
     private static final Lock NON_FAIR_LOCK = new ReentrantLock();
-    private static volatile int CORE_DATA_FLAG = 0;
     private static volatile int NUMBER = 0;
+
     @Resource
     private TaskRepository TaskRepository;
 
@@ -30,36 +30,81 @@ public class TaskServiceImpl implements TaskService {
     @Resource
     private RedissonClient redissonClient;
 
+    /**
+     * 无锁出现线程安全问题
+     *
+     * @return
+     */
+    public String noLock() {
+        NUMBER++;
+        log.info("--thread={}--number={}", getThread().getName(), NUMBER);
+        return "OK";
+    }
+
+    /**
+     * 线程安全 但并不一定公平
+     *
+     * @return
+     */
     public String fairReEntrantLock() {
         long begin = getTime();
         FAIR_LOCK.lock();
         try {
+            log.info("--thread={}--number={}", getThread().getName(), NUMBER);
             NUMBER++;
-            setThreadName("reentrantLock" + NUMBER);
-            log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
         } finally {
+            log.info("--thread={}--unlock", getThread().getName());
             FAIR_LOCK.unlock();
         }
         long end = getTime();
-        log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
+        log.debug("--thread={}--cost={}", getThread().getName(), (end - begin) / 1000);
         return "OK";
     }
 
-    public String noLock() {
+    /**
+     * tryLock等待时长较短 则部分线程竞争不到
+     * 本例中 10s部分不再等待 30s则可以跑完
+     * @return
+     * @throws InterruptedException
+     */
+    public String reEntrantLock() throws InterruptedException {
+        long begin = getTime();
+        boolean b = NON_FAIR_LOCK.tryLock(20, TimeUnit.SECONDS);
+        if (b) {
+            try {
+                NUMBER++;
+                log.info("--thread={}--number={}", getThread().getName(), NUMBER);
+                TimeUnit.SECONDS.sleep(3);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                log.info("--thread={}--unlock", getThread().getName());
+                NON_FAIR_LOCK.unlock();
+            }
+            long end = getTime();
+            log.debug("--thread={}--cost={}", getThread().getName(), (end - begin) / 1000);
+            return "OK";
+        }
+        log.info("--thread={}--NO", getThread().getName());
+        return "NO";
+    }
+
+    public synchronized String synchronizedLock() {
+        long begin = getTime();
         NUMBER++;
-        setThreadName("noLock" + NUMBER);
-        log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
+        log.info("--thread={}--number={}", getThread().getName(), NUMBER);
+        long end = getTime();
+        log.debug("--thread={}--cost={}", getThread().getName(), (end - begin) / 1000);
         return "OK";
     }
 
-    public String rLock() {
+    public String rLock() throws InterruptedException {
         long begin = getTime();
         RLock lock = redissonClient.getLock("lock");
         lock.lock(10, TimeUnit.SECONDS);
         try {
             NUMBER++;
-            setThreadName("redisRLock11" + NUMBER);
-            log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
+            log.info("--thread={}--number={}", getThread().getName(), NUMBER);
             TimeUnit.SECONDS.sleep(1);
         } finally {
             if (lock.isHeldByCurrentThread()) {
@@ -67,7 +112,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
         long end = getTime();
-        log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
+        log.debug("--thread={}--cost={}", getThread().getName(), (end - begin) / 1000);
         return "OK";
     }
 
@@ -80,41 +125,11 @@ public class TaskServiceImpl implements TaskService {
     public String rLockExec() {
         String s = distributedLock.lockAndExec(1l, "12345", () -> {
             NUMBER++;
-            log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
+            log.info("--thread={}--number={}", getThread().getName(), NUMBER);
             return "OK";
         });
 
         return s;
-    }
-
-    public String reEntrantLock() throws InterruptedException {
-        long begin = getTime();
-        boolean b = NON_FAIR_LOCK.tryLock(2, TimeUnit.SECONDS);
-        if (b) {
-            try {
-                NUMBER++;
-                log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
-                TimeUnit.SECONDS.sleep(3);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                NON_FAIR_LOCK.unlock();
-            }
-            long end = getTime();
-            log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
-            return "OK";
-        }
-        return "NO";
-    }
-
-    public synchronized String synchronizedLock() {
-        long begin = getTime();
-        NUMBER++;
-        setThreadName("synchronizedLock" + NUMBER);
-        log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
-        long end = getTime();
-        log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
-        return "OK";
     }
 
     /**
@@ -130,10 +145,9 @@ public class TaskServiceImpl implements TaskService {
         if (res) {
             try {
                 NUMBER++;
-                setThreadName("myLock" + NUMBER);
                 new Thread(() -> {
                     try {
-                        log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
+                        log.info("--thread={}--number={}", getThread().getName(), NUMBER);
                         TimeUnit.SECONDS.sleep(3);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -147,7 +161,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
         long end = getTime();
-        log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
+        log.debug("--thread={}--cost={}", getThread().getName(), (end - begin) / 1000);
         return "OK";
     }
 
@@ -159,8 +173,7 @@ public class TaskServiceImpl implements TaskService {
         if (res) {
             try {
                 NUMBER++;
-                setThreadName("redisRLock1" + number);
-                log.info("==thread=={}==number=={}", getThread().getName(), NUMBER);
+                log.info("--thread={}--number={}", getThread().getName(), NUMBER);
                 TimeUnit.SECONDS.sleep(1);
             } finally {
                 if (lock.isHeldByCurrentThread()) {
@@ -169,7 +182,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
         long end = getTime();
-        log.debug("==thread=={}==cost=={}", getThread().getName(), (end - begin) / 1000);
+        log.debug("--thread={}--cost={}", getThread().getName(), (end - begin) / 1000);
         return "OK";
     }
 

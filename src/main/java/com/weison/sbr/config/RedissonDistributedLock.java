@@ -70,11 +70,11 @@ public class RedissonDistributedLock implements DistributedLock {
         try {
             //20s获取不到锁认为获取锁失败 10s锁失效
             boolean isGetLock = rLock.tryLock(10, 10, TimeUnit.SECONDS);
-            log.debug("ThreadName:{}==获取lock:{}成功", threadName, userId + lockFlag);
+            log.debug("ThreadName:{}--获取lock:{}成功", threadName, userId + lockFlag);
             if (isGetLock) {
-                log.debug("ThreadName:{}==上锁lock:{}成功", threadName, userId + lockFlag);
+                log.debug("ThreadName:{}--上锁lock:{}成功", threadName, userId + lockFlag);
                 result = supplier.get();
-                log.debug("==lock==result=={}", result);
+                log.debug("==lock==result={}", result);
             }
         } catch (InterruptedException e) {
             log.debug("获取lock:{}失败", userId + lockFlag);
@@ -99,7 +99,7 @@ public class RedissonDistributedLock implements DistributedLock {
             log.debug("获取fairLock:{}成功", userId + lockFlag);
             if (isGetLock) {
                 result = supplier.get();
-                log.debug("==fairLock==result=={}", result);
+                log.debug("==fairLock==result={}", result);
             }
         } catch (InterruptedException e) {
             log.debug("获取fairLock:{}失败", userId + lockFlag);
