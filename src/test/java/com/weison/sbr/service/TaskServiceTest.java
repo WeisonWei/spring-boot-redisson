@@ -42,9 +42,9 @@ public class TaskServiceTest {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    log.info(finalI + " 到达栅栏");
+                    log.info(finalI + " 到达屏障");
                     barrier.await();
-                    log.info(finalI + " 冲破栅栏");
+                    log.info(finalI + " 冲破屏障");
                     String result = taskService.noLock();
                     log.info(finalI + " -- " + result);
                     countDownLatch.countDown();
@@ -55,6 +55,7 @@ public class TaskServiceTest {
         }
         countDownLatch.await();
         log.info("--noLock--over--");
+        executorService.shutdown();
     }
 
     @Test
@@ -72,9 +73,9 @@ public class TaskServiceTest {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    log.info(finalI + " = 到达栅栏 =");
+                    log.info(finalI + " = 到达屏障 =");
                     barrier.await();
-                    log.info(finalI + " - 冲破栅栏 -");
+                    log.info(finalI + " - 冲破屏障 -");
                     taskService.fairReEntrantLock();
                     countDownLatch.countDown();
                 } catch (InterruptedException | BrokenBarrierException e) {
@@ -84,6 +85,7 @@ public class TaskServiceTest {
         }
         countDownLatch.await();
         log.info("--fairReEntrantLock--over--");
+        executorService.shutdown();
     }
 
     @Test
@@ -101,9 +103,9 @@ public class TaskServiceTest {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    log.info(finalI + " = 到达栅栏 =");
+                    log.info(finalI + " = 到达屏障 =");
                     barrier.await();
-                    log.info(finalI + " - 冲破栅栏 -");
+                    log.info(finalI + " - 冲破屏障 -");
                     taskService.reEntrantLock();
                     countDownLatch.countDown();
                 } catch (InterruptedException | BrokenBarrierException e) {
@@ -113,6 +115,7 @@ public class TaskServiceTest {
         }
         countDownLatch.await();
         log.info("--reEntrantLock--over--");
+        executorService.shutdown();
     }
 
     @Test
@@ -130,9 +133,9 @@ public class TaskServiceTest {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    log.info(finalI + " = 到达栅栏 =");
+                    log.info(finalI + " = 到达屏障 =");
                     barrier.await();
-                    log.info(finalI + " - 冲破栅栏 -");
+                    log.info(finalI + " - 冲破屏障 -");
                     taskService.synchronizedLock();
                     countDownLatch.countDown();
                 } catch (InterruptedException | BrokenBarrierException e) {
@@ -142,6 +145,7 @@ public class TaskServiceTest {
         }
         countDownLatch.await();
         log.info("--synchronizedLock--over--");
+        executorService.shutdown();
     }
 
     @Test
@@ -159,9 +163,9 @@ public class TaskServiceTest {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    log.info(finalI + " = 到达栅栏 =");
+                    log.info(finalI + " = 到达屏障 =");
                     barrier.await();
-                    log.info(finalI + " - 冲破栅栏 -");
+                    log.info(finalI + " - 冲破屏障 -");
                     taskService.rLock();
                     countDownLatch.countDown();
                 } catch (InterruptedException | BrokenBarrierException e) {
@@ -171,6 +175,7 @@ public class TaskServiceTest {
         }
         countDownLatch.await();
         log.info("--rLock--over--");
+        executorService.shutdown();
     }
 
     @Test
@@ -188,9 +193,9 @@ public class TaskServiceTest {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    log.info(finalI + " = 到达栅栏 =");
+                    log.info(finalI + " = 到达屏障 =");
                     barrier.await();
-                    log.info(finalI + " - 冲破栅栏 -");
+                    log.info(finalI + " - 冲破屏障 -");
                     taskService.rLockExec();
                     countDownLatch.countDown();
                 } catch (InterruptedException | BrokenBarrierException e) {
@@ -200,6 +205,7 @@ public class TaskServiceTest {
         }
         countDownLatch.await();
         log.info("--rLockExec--over--");
+        executorService.shutdown();
     }
 
     @Test
@@ -217,9 +223,9 @@ public class TaskServiceTest {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    log.info(finalI + " = 到达栅栏 =");
+                    log.info(finalI + " = 到达屏障 =");
                     barrier.await();
-                    log.info(finalI + " - 冲破栅栏 -");
+                    log.info(finalI + " - 冲破屏障 -");
                     taskService.trLock();
                     countDownLatch.countDown();
                 } catch (InterruptedException | BrokenBarrierException e) {
@@ -229,6 +235,7 @@ public class TaskServiceTest {
         }
         countDownLatch.await();
         log.info("--trLock--over--");
+        executorService.shutdown();
     }
 
     @Test
@@ -246,9 +253,9 @@ public class TaskServiceTest {
             int finalI = i;
             executorService.execute(() -> {
                 try {
-                    log.info(finalI + " = 到达栅栏 =");
+                    log.info(finalI + " = 到达屏障 =");
                     barrier.await();
-                    log.info(finalI + " - 冲破栅栏 -");
+                    log.info(finalI + " - 冲破屏障 -");
                     taskService.trfLock();
                     countDownLatch.countDown();
                 } catch (InterruptedException | BrokenBarrierException e) {
@@ -258,5 +265,6 @@ public class TaskServiceTest {
         }
         countDownLatch.await();
         log.info("--trfLock--over--");
+        executorService.shutdown();
     }
 }
