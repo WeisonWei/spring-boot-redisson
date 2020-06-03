@@ -1,7 +1,5 @@
 package com.weison.sbr.config;
 
-
-import com.weison.sbr.util.DistributedLockUtil;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.Redisson;
@@ -16,31 +14,23 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class RedissonConfig {
 
-    @Value("${spring.redis.url:}")
+    @Value("${spring.redis.url}")
     private String address;
 
     @Value("${spring.redis.password:}")
     private String password;
 
-    @Value("${spring.redis.database:0}")
+    @Value("${spring.redis.database}")
     private String database;
 
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
-        //config.useSingleServer().setAddress("redis://127.0.0.1:6379").setPassword("123456");
         SingleServerConfig singleServerConfig = config.useSingleServer();
-        if (StringUtils.isNotBlank(address)) {
-            singleServerConfig.setAddress(address);
-        }
-
+        singleServerConfig.setAddress(address);
+        singleServerConfig.setDatabase(Integer.valueOf(database));
         if (StringUtils.isNotBlank(password)) {
             singleServerConfig.setPassword(password);
-        }
-
-        if (StringUtils.isNotBlank(database)) {
-            singleServerConfig.setDatabase(Integer.valueOf(database));
-
         }
         RedissonClient redissonClient = Redisson.create(config);
         return redissonClient;
@@ -48,9 +38,8 @@ public class RedissonConfig {
 
     @Bean
     public DistributedLock distributedLocker(RedissonClient redissonClient) {
-        DistributedLock locker = new RedissonDistributedLock();
-        ((RedissonDistributedLock) locker).setRedissonClient(redissonClient);
-        DistributedLockUtil.setLocker(locker);
+        DistributedLock locker = new RedissonDistributedLock(redissonClient);
         return locker;
     }
+
 }

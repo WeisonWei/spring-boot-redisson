@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
@@ -64,6 +63,7 @@ public class TaskServiceImpl implements TaskService {
     /**
      * tryLock等待时长较短 则部分线程竞争不到
      * 本例中 10s部分不再等待 30s则可以跑完
+     *
      * @return
      * @throws InterruptedException
      */
@@ -123,7 +123,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws InterruptedException
      */
     public String rLockExec() {
-        String s = distributedLock.lockAndExec(1l, "12345", () -> {
+        String s = distributedLock.lockAndExec("12345", () -> {
             NUMBER++;
             log.info("--thread={}--number={}", getThread().getName(), NUMBER);
             return "OK";
@@ -188,10 +188,6 @@ public class TaskServiceImpl implements TaskService {
 
     private long getTime() {
         return System.currentTimeMillis();
-    }
-
-    private void setThreadName(@RequestParam String name) {
-        getThread().setName(name);
     }
 
     private Thread getThread() {
