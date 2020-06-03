@@ -3,6 +3,7 @@ package com.weison.sbr.controller;
 import com.weison.sbr.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -57,5 +58,15 @@ public class TaskController {
     @GetMapping("/locks/r-lock-e")
     public String rLockExec() {
         return taskService.rLockExec();
+    }
+
+    @GetMapping("/amounts")
+    public Float getAmount() {
+        return taskService.getAmount();
+    }
+
+    @PostMapping("/amounts")
+    public Float useAmount() {
+        return taskService.useAmount();
     }
 }

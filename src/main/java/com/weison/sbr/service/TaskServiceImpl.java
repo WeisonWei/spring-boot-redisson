@@ -3,6 +3,7 @@ package com.weison.sbr.service;
 import com.weison.sbr.config.DistributedLock;
 import com.weison.sbr.repository.TaskRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -184,6 +185,29 @@ public class TaskServiceImpl implements TaskService {
         long end = getTime();
         log.debug("--thread={}--cost={}", getThread().getName(), (end - begin) / 1000);
         return "OK";
+    }
+
+    @Override
+    public Float getAmount() {
+        //
+        Double random = Math.random();
+        float amount = random.floatValue();
+        RBucket<Object> redisAmount = redissonClient.getBucket("amount");
+        if (redisAmount.isExists()) {
+            return (Float) redisAmount.get();
+        } else {
+            redisAmount.set(amount);
+        }
+        return amount;
+    }
+
+    @Override
+    public Float useAmount() {
+        RBucket<Object> redisAmount = redissonClient.getBucket("amount");
+        if (redisAmount.isExists()) {
+            return (Float) redisAmount.getAndDelete();
+        }
+        return null;
     }
 
     private long getTime() {
