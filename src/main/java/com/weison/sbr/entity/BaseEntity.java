@@ -75,15 +75,4 @@ public abstract class BaseEntity implements Serializable {
         return this;
     }
 
-
-    public enum STATUS {
-        /**
-         * 未激活状态
-         */
-        INACTIVE,
-        /**
-         * 已激活状态
-         */
-        ACTIVE;
-    }
 }
