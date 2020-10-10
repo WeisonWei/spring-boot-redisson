@@ -10,17 +10,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * @author WeisonWei
+ * @date 2020/10/10
+ */
 @Configuration
 @Data
 public class RedissonConfig {
 
-    @Value("${spring.redis.url}")
+    @Value("${spring.redis.url:redis://localhost:6379}")
     private String address;
 
     @Value("${spring.redis.password:}")
     private String password;
 
-    @Value("${spring.redis.database}")
+    @Value("${spring.redis.database:0}")
     private String database;
 
     @Bean
@@ -28,18 +32,15 @@ public class RedissonConfig {
         Config config = new Config();
         SingleServerConfig singleServerConfig = config.useSingleServer();
         singleServerConfig.setAddress(address);
-        singleServerConfig.setDatabase(Integer.valueOf(database));
+        singleServerConfig.setDatabase(Integer.parseInt(database));
         if (StringUtils.isNotBlank(password)) {
             singleServerConfig.setPassword(password);
         }
-        RedissonClient redissonClient = Redisson.create(config);
-        return redissonClient;
+        return Redisson.create(config);
     }
 
     @Bean
     public DistributedLock distributedLocker(RedissonClient redissonClient) {
-        DistributedLock locker = new RedissonDistributedLock(redissonClient);
-        return locker;
+        return new RedissonLock(redissonClient);
     }
-
 }

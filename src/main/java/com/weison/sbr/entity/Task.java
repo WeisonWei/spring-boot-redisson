@@ -1,7 +1,9 @@
 package com.weison.sbr.entity;
 
 import com.weison.sbr.repository.TaskAuditListener;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -9,7 +11,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 
-
+/**
+ * @author WeisonWei
+ * @date 2020/10/10
+ */
 @Table(name = "t_task",
         indexes = {
                 @Index(name = "idx_type", columnList = "type"),
@@ -35,9 +40,6 @@ public class Task extends BaseEntity {
 
     @Column(name = "remark", nullable = true, columnDefinition = BaseEntity.VARCHAR_DEFAULT_0 + " comment '备注'")
     private String remark = null;
-
-    @Column(name = "status", nullable = true, columnDefinition = BaseEntity.INT_DEFAULT_0 + " comment '状态'")
-    private STATUS status = null;
 
     @Column(name = "tag", nullable = true, columnDefinition = BaseEntity.INT_DEFAULT_0 + " comment '标记'")
     private Tag tag = null;
@@ -73,7 +75,7 @@ public class Task extends BaseEntity {
          */
         BUY,
         /**
-         * 签到打卡
+         * 签到
          */
         SIGN
     }

@@ -1,8 +1,14 @@
 package com.weison.sbr.service;
 
+/**
+ * @author WeisonWei
+ * @date 2020/10/10
+ */
 public interface TaskService {
 
     String fairReEntrantLock();
+
+    String dir(String key);
 
     String noLock();
 
@@ -18,17 +24,7 @@ public interface TaskService {
 
     String trfLock() throws InterruptedException;
 
-    /**
-     * 获取奖励金额 每次覆盖之前
-     *
-     * @return
-     */
     Float getAmount();
 
-    /**
-     * 使用奖励金额 使用后清除
-     *
-     * @return
-     */
     Float useAmount();
 }

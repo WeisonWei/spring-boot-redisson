@@ -13,6 +13,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * @author WeisonWei
+ * @date 2020/10/10
+ */
 @Service
 @Slf4j
 public class TaskServiceImpl implements TaskService {
@@ -59,6 +63,12 @@ public class TaskServiceImpl implements TaskService {
         long end = getTime();
         log.debug("--thread={}--cost={}", getThread().getName(), (end - begin) / 1000);
         return "OK";
+    }
+
+    @Override
+    public String dir(String key) {
+        distributedLock.lockAndExec("order:refund:" + key + "_refund", key, System.out::print);
+        return key;
     }
 
     /**
@@ -189,7 +199,6 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Float getAmount() {
-        //
         Double random = Math.random();
         float amount = random.floatValue();
         RBucket<Object> redisAmount = redissonClient.getBucket("amount");

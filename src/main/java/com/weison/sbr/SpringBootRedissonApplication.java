@@ -11,7 +11,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import static org.springframework.data.repository.query.QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND;
 
-
+/**
+ * @author WeisonWei
+ * @date 2020/10/10
+ */
 @SpringBootApplication
 @EnableAsync
 @EnableCaching

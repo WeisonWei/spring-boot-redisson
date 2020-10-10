@@ -5,7 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-
+/**
+ * @author WeisonWei
+ * @date 2020/10/10
+ */
 @Data
 @Builder
 @EqualsAndHashCode(callSuper = true)

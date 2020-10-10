@@ -13,6 +13,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.io.Serializable;
 
+/**
+ * @author WeisonWei
+ * @date 2020/10/10
+ */
 @Slf4j
 @MappedSuperclass
 @Data

@@ -3,11 +3,16 @@ package com.weison.sbr.controller;
 import com.weison.sbr.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
+/**
+ * @author WeisonWei
+ * @date 2020/10/10
+ */
 @RestController
 @Slf4j
 public class TaskController {
@@ -18,6 +23,11 @@ public class TaskController {
     @GetMapping("/hello")
     public String hello() {
         return "hello";
+    }
+
+    @GetMapping("/dir/{key}")
+    public String dir(@PathVariable("key") String key) {
+        return taskService.dir(key);
     }
 
     @GetMapping("/locks/no")
