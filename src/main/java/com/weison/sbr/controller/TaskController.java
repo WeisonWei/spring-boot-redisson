@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author WeisonWei
@@ -21,7 +22,10 @@ public class TaskController {
     private TaskService taskService;
 
     @GetMapping("/hello")
-    public String hello() {
+    public String hello(HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        String requestURL = request.getRequestURL().toString();
+        log.info("requestURI:{},requestURL:{},", requestURI, requestURL);
         return "hello";
     }
 
